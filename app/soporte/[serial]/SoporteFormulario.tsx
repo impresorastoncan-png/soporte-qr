@@ -345,8 +345,8 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-400">
             Para más información:{' '}
-            <a href="mailto:gerenciaatc@toncandigital.com" className="text-blue-600 hover:underline">
-              gerenciaatc@toncandigital.com
+            <a href="mailto:soporte@toncandigital.com" className="text-blue-600 hover:underline">
+              soporte@toncandigital.com
             </a>{' '}
             · (0212) 735 1960/1961
           </p>

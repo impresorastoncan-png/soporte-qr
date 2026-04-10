@@ -67,8 +67,8 @@ export default async function GraciasPage({
         <div className="mt-12 pt-6 border-t border-gray-200">
           <p className="text-xs text-gray-400">
             Para más información:{' '}
-            <a href="mailto:gerenciaatc@toncandigital.com" className="text-blue-600 hover:underline">
-              gerenciaatc@toncandigital.com
+            <a href="mailto:soporte@toncandigital.com" className="text-blue-600 hover:underline">
+              soporte@toncandigital.com
             </a>{' '}
             · (0212) 735 1960/1961
           </p>
