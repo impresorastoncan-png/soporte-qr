@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import QRCode from 'react-qr-code'
 
 interface Props {
@@ -11,15 +11,21 @@ interface Props {
 
 export default function MaquinaQR({ serial, modelo, clienteNombre }: Props) {
   const [abierto, setAbierto] = useState(false)
+  const [origin, setOrigin] = useState('')
   const qrRef = useRef<HTMLDivElement>(null)
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+  useEffect(() => {
+    setOrigin(window.location.origin)
+  }, [])
+
+  const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || ''
   const url = `${baseUrl}/soporte/${serial}`
 
   function handleImprimir() {
     const svg = qrRef.current?.querySelector('svg')
     if (!svg) return
     const svgHtml = svg.outerHTML
+    const logoUrl = `${window.location.origin}/logo-toncan.png`
     const w = window.open('', '_blank', 'width=480,height=640')
     if (!w) return
     w.document.write(`<!doctype html>
@@ -31,16 +37,18 @@ export default function MaquinaQR({ serial, modelo, clienteNombre }: Props) {
   html, body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
   .sticker {
     width: 96mm; height: 55mm; box-sizing: border-box;
-    display: flex; align-items: center; gap: 6mm;
-    padding: 4mm 5mm; background: white;
+    display: flex; align-items: center; gap: 5mm;
+    padding: 3mm 4mm; background: white;
   }
   .qr { flex-shrink: 0; width: 45mm; height: 45mm; }
   .qr svg { width: 100% !important; height: 100% !important; display: block; }
-  .info { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-  .titulo { font-size: 11pt; font-weight: 800; color: #162f52; line-height: 1.1; margin-bottom: 2mm; }
-  .serial { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: 700; color: #111; }
-  .modelo { font-size: 8pt; color: #555; margin-top: 1mm; }
-  .cta { font-size: 7pt; color: #666; margin-top: 2mm; line-height: 1.2; }
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; height: 49mm; }
+  .logo { height: 9mm; width: auto; align-self: flex-start; }
+  .marca { font-size: 7pt; font-weight: 800; color: #162f52; letter-spacing: 0.3pt; margin-top: 0.5mm; }
+  .serial { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: 700; color: #111; margin-top: 1mm; }
+  .modelo { font-size: 7pt; color: #555; margin-top: 0.5mm; }
+  .contacto { font-size: 6pt; color: #333; line-height: 1.35; margin-top: auto; padding-top: 1.5mm; border-top: 0.3mm solid #e5e5e5; }
+  .contacto strong { color: #162f52; }
   @media screen {
     body { background: #eee; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
     .sticker { box-shadow: 0 4px 16px rgba(0,0,0,0.1); border: 1px solid #ddd; }
@@ -56,10 +64,17 @@ export default function MaquinaQR({ serial, modelo, clienteNombre }: Props) {
   <div class="sticker">
     <div class="qr">${svgHtml}</div>
     <div class="info">
-      <div class="titulo">TONCAN DIGITAL</div>
-      <div class="serial">${serial}</div>
-      <div class="modelo">${modelo}</div>
-      <div class="cta">Escanea este código para reportar una falla o solicitar tóner.</div>
+      <div>
+        <img class="logo" src="${logoUrl}" alt="Toncan Digital" />
+        <div class="marca">TONCAN DIGITAL</div>
+        <div class="serial">${serial}</div>
+        <div class="modelo">${modelo}</div>
+      </div>
+      <div class="contacto">
+        <strong>toncandigital.com</strong><br/>
+        soporte@toncandigital.com<br/>
+        0212-740-4501 · 286-1926
+      </div>
     </div>
   </div>
   <button class="no-print" onclick="window.print()">Imprimir sticker</button>
