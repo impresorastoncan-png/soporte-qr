@@ -1009,3 +1009,5 @@ export default function GestionDashboard() {
         </div>
     </body>
     </html>
+  );
+}
