@@ -240,7 +240,7 @@ const cover = h(Page, { size: 'A4', style: [styles.page, styles.cover] },
     h(Text, { style: styles.coverTitle }, 'Sistema de\nSoporte QR'),
     h(Text, { style: styles.coverSubtitle }, 'Manual técnico y guía de uso'),
   ),
-  h(Text, { style: styles.coverFooter }, 'Versión 1.0  ·  Uso interno')
+  h(Text, { style: styles.coverFooter }, 'Versión 1.1  ·  Uso interno  ·  Abril 2026')
 )
 
 const tecnico = h(Page, { size: 'A4', style: styles.page },
@@ -398,14 +398,26 @@ const uso1 = h(Page, { size: 'A4', style: styles.page },
 )
 
 const uso2 = h(Page, { size: 'A4', style: styles.page },
-  Situation(3, 'Imprimir el QR de una máquina individual'),
-  P('Usar cuando necesitas el sticker de una sola máquina, por ejemplo al reemplazar un sticker dañado o al registrar una máquina nueva.'),
+  Situation(3, 'Imprimir stickers QR en lote (por cliente)'),
+  P('Este es el flujo principal para generar todos los stickers de un cliente de una vez. Los stickers se imprimen en hojas A4 con 8 stickers por página (2 columnas × 4 filas), listos para recortar y pegar en cada máquina.'),
+  P(h(Text, null, B('Impresora recomendada: '), 'Epson L215 (aparece en Windows como EPSON L210 Series) con papel adhesivo A4 o papel bond normal.')),
+  NLi(1, 'En el sidebar, hacer click en Stickers QR.'),
+  NLi(2, 'Aparece la lista de clientes activos con la cantidad de máquinas de cada uno. Seleccionar el cliente.'),
+  NLi(3, 'Se muestra la tabla con todas las máquinas activas del cliente.'),
+  NLi(4, 'Hacer click en el botón azul Imprimir X stickers (arriba de la tabla). Se abre una ventana nueva con la hoja A4 lista.'),
+  NLi(5, 'En la ventana nueva, click en Imprimir o presionar Ctrl+P.'),
+  NLi(6, h(Text, null, 'En el cuadro de impresión: seleccionar ', B('EPSON L210 Series'), ', tamaño ', B('A4'), ', márgenes ', B('mínimos'), '. Imprimir.')),
+  P(' '),
+  P('Para reimprimir un solo sticker, usar el botón Imprimir en la fila individual de esa máquina.'),
+  P(h(Text, null, B('Orden de carga recomendado: '), 'procesar primero todos los clientes de ATC1, luego ATC2 y por último ATC3.')),
+
+  H3('Situación 3b — Imprimir QR individual desde edición'),
+  P('Alternativa para imprimir un solo sticker desde la vista de edición de la máquina.'),
   NLi(1, 'Ir a Máquinas en el sidebar o al detalle del cliente.'),
   NLi(2, 'Click en Editar en la fila de la máquina.'),
   NLi(3, 'En la parte superior del formulario, click en Mostrar QR.'),
-  NLi(4, 'Se muestra el código QR con el serial, modelo, cliente y la URL codificada.'),
-  NLi(5, 'Click en Imprimir sticker. Se abre una ventana nueva con el sticker formateado a 96mm × 55mm.'),
-  NLi(6, 'Usar Ctrl+P y seleccionar la impresora de etiquetas o papel adhesivo.'),
+  NLi(4, 'Click en Imprimir sticker. Se abre una ventana nueva con el sticker formateado.'),
+  NLi(5, 'Usar Ctrl+P y seleccionar la impresora Epson L215.'),
 
   Situation(4, 'Reemplazar una máquina en un cliente'),
   P('Este es uno de los flujos más importantes. Caso típico: se daña la impresora XWH04309 del cliente Empresa A, se la llevan al almacén de Toncan y en su lugar se instala la máquina XLJ04170 que estaba guardada.'),

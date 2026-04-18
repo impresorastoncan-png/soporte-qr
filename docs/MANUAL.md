@@ -47,7 +47,7 @@ La raíz del proyecto sigue convenciones Next.js App Router:
 - `components/` — componentes React compartidos: primitivos de UI del panel admin y el template de correo.
 - `proxy.ts` — middleware de Next.js 16 que protege las rutas `/admin/*` y redirige al login cuando no hay sesión activa.
 - `supabase_schema.md` — documentación versionada de todas las migraciones SQL del proyecto.
-- `docs/` — este manual y cualquier otra documentación.
+- `docs/` — este manual, el poster de referencia rápida para stickers (`POSTER-STICKERS-QR.html`) y cualquier otra documentación.
 
 ## 4. Base de datos
 
@@ -181,16 +181,46 @@ Notas importantes:
 - Si un serial del Excel ya existe en un almacén (CTD QTA o CTD L4), la importación lo mueve automáticamente al cliente destino. Esto facilita reasignar equipos que estaban retornados.
 - Si un serial ya existe en otro cliente real, la fila se omite para prevenir asignaciones duplicadas. En ese caso hay que retirarla primero del cliente actual y luego reimportarla.
 
-## Situación 3: Imprimir el QR de una máquina individual
+## Situación 3: Imprimir stickers QR en lote (por cliente)
 
-Usar cuando necesitas el sticker de una sola máquina, por ejemplo al reemplazar un sticker dañado o al registrar una máquina nueva.
+Este es el flujo principal para generar todos los stickers de un cliente de una vez. Los stickers se imprimen en hojas A4 con 8 stickers por página (2 columnas × 4 filas), listos para recortar y pegar en cada máquina.
+
+**Impresora recomendada:** Epson L215 (o L210 Series) con papel adhesivo A4 o papel bond normal.
+
+1. En el sidebar, hacer click en **Stickers QR**.
+2. Aparece la lista de clientes activos con la cantidad de máquinas de cada uno. Seleccionar el cliente.
+3. Se muestra la tabla con todas las máquinas activas del cliente, cada una con su serial, modelo y ubicación.
+4. Hacer click en el botón azul **Imprimir X stickers** (arriba de la tabla). Se abre una ventana nueva con la hoja A4 lista.
+5. En la ventana nueva, hacer click en **Imprimir** o presionar **Ctrl+P**.
+6. En el cuadro de impresión del navegador:
+   - **Impresora**: seleccionar EPSON L210 Series (la Epson L215).
+   - **Tamaño de papel**: A4.
+   - **Márgenes**: mínimos.
+7. Imprimir.
+
+Para reimprimir el sticker de una sola máquina (por ejemplo si salió mal o se dañó), usar el botón **Imprimir** en la fila individual de esa máquina en la misma tabla.
+
+**Orden de carga recomendado:** procesar primero todos los clientes de ATC1, luego ATC2 y por último ATC3.
+
+### Configuración de la impresora Epson L215
+
+La Epson L215 aparece en Windows como "EPSON L210 Series". Al imprimir por primera vez:
+
+1. Asegurarse de que la impresora esté conectada por USB y encendida.
+2. Si Windows no la detecta automáticamente, instalar los drivers desde el CD incluido o desde el sitio de Epson.
+3. En el cuadro de impresión del navegador, verificar que esté seleccionada como impresora destino.
+4. Se recomienda hacer una prueba con papel bond normal antes de usar papel adhesivo.
+
+## Situación 3b: Imprimir el QR de una máquina individual (desde edición)
+
+Alternativa para imprimir un solo sticker desde la vista de edición de la máquina, sin pasar por la sección Stickers QR.
 
 1. Ir a **Máquinas** en el sidebar o al detalle del cliente.
 2. Click en **Editar** en la fila de la máquina.
 3. En la parte superior del formulario hacer click en **Mostrar QR**.
 4. Se muestra el código QR con el serial, modelo, cliente y la URL codificada.
 5. Hacer click en **Imprimir sticker**. Se abre una ventana nueva con el sticker formateado a 96mm × 55mm listo para imprimir.
-6. Usar la función de impresión del navegador (Ctrl+P) y seleccionar la impresora de etiquetas o papel adhesivo.
+6. Usar la función de impresión del navegador (Ctrl+P) y seleccionar la impresora Epson L215.
 
 ## Situación 4: Reemplazar una máquina en un cliente
 
