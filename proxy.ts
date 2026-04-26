@@ -28,10 +28,11 @@ export async function proxy(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
   const isAdminRoute = pathname.startsWith('/admin')
+  const isPortalRoute = pathname.startsWith('/portal')
   const isLoginRoute = pathname === '/admin/login'
 
-  // Proteger rutas admin
-  if (isAdminRoute && !isLoginRoute && !user) {
+  // Proteger rutas admin y portal
+  if ((isAdminRoute && !isLoginRoute && !user) || (isPortalRoute && !user)) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/admin/login'
     loginUrl.searchParams.set('next', pathname)
