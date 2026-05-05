@@ -30,6 +30,14 @@ export async function guardarCliente(
       .update({ nombre, rif, direccion, atc_email, activo })
       .eq('id', id)
     if (error) return { error: error.message }
+
+    // Si se desactiva el cliente, desactivar todas sus maquinas
+    if (!activo) {
+      await supabase
+        .from('maquinas')
+        .update({ activo: false })
+        .eq('cliente_id', id)
+    }
   } else {
     const { error } = await supabase
       .from('clientes')

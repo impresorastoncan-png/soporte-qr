@@ -17,6 +17,7 @@ const soporteItems = [
 ]
 
 const gestionItems = [
+  { href: '/admin/contadores', label: 'Contadores', icon: 'counter' },
   { href: '/admin/nomina', label: 'Nómina', icon: 'wallet' },
   { href: '/admin/costos', label: 'Costos', icon: 'calculator' },
   { href: '/admin/viaticos', label: 'Viáticos', icon: 'car' },
@@ -39,6 +40,7 @@ const icons: Record<string, React.ReactNode> = {
   calculator: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 7h6m-6 4h6m-6 4h2m2 0h2M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />,
   car: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zM3 11l2-6h14l2 6M3 11h18v6H3v-6z" />,
   receipt: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />,
+  counter: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 7h6m0 0l-2-2m2 2l-2 2M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1zm5-4h6m-3-3v6" />,
   chart: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />,
 }
 

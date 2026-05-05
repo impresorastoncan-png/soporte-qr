@@ -1,0 +1,12 @@
+-- =============================================================
+-- Crear profile para gerenciatc@toncandigital.com
+-- NOTA: El auth.users debe crearse manualmente en Supabase Dashboard
+--       (Authentication > Users > Invite user) con email gerenciatc@toncandigital.com
+--       Luego esta migracion inserta el profile con rol admin.
+--       Si ya existe el auth.user, descomentar y reemplazar el UUID real.
+-- =============================================================
+
+-- Placeholder: reemplazar 'REPLACE_WITH_AUTH_USER_ID' con el UUID real del usuario
+-- insert into admin.profiles (user_id, nombre, rol, activo)
+-- values ('REPLACE_WITH_AUTH_USER_ID', 'Gerencia ATC', 'admin', true)
+-- on conflict (user_id) do nothing;

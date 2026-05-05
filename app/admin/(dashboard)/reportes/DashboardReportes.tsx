@@ -4,6 +4,14 @@ import { useEffect, useRef } from 'react'
 import Chart from 'chart.js/auto'
 import Link from 'next/link'
 
+export type ContadorResumen = {
+  totalClientes: number
+  clientesCargados: number
+  totalCopias: number
+  totalFacturadoUsd: number
+  porEstado: { pendiente: number; proforma: number; listo: number }
+}
+
 export type ReportesData = {
   empleados: number
   sumaSalarios: number
@@ -13,6 +21,7 @@ export type ReportesData = {
   tasaUsd: number
   tasaEur: number
   tasaFecha: string | null
+  contadores?: ContadorResumen
 }
 
 const fmtUsd = (n: number) =>
@@ -389,6 +398,47 @@ export default function DashboardReportes({
           </div>
         </div>
       </Section>
+
+      {/* ─── CONTADORES DEL MES ─── */}
+      {data.contadores && (
+        <Section title="Contadores del Mes">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <p className="text-xs text-gray-500 font-medium">Clientes cargados</p>
+              <p className="text-xl font-bold text-gray-800">{data.contadores.clientesCargados} / {data.contadores.totalClientes}</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <p className="text-xs text-gray-500 font-medium">Total copias</p>
+              <p className="text-xl font-bold text-gray-800">{data.contadores.totalCopias.toLocaleString('es-VE')}</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <p className="text-xs text-gray-500 font-medium">Facturado USD</p>
+              <p className="text-xl font-bold text-gray-800">${data.contadores.totalFacturadoUsd.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <p className="text-xs text-gray-500 font-medium">Pendientes</p>
+              <p className="text-xl font-bold text-amber-600">{data.contadores.totalClientes - data.contadores.clientesCargados}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3 items-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+              Pendiente: {data.contadores.porEstado.pendiente}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+              Proforma: {data.contadores.porEstado.proforma}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+              Listo: {data.contadores.porEstado.listo}
+            </span>
+            <Link
+              href="/admin/contadores"
+              className="ml-auto text-xs font-semibold text-blue-600 hover:underline"
+            >
+              Ver todos los contadores &rarr;
+            </Link>
+          </div>
+        </Section>
+      )}
     </div>
   )
 }

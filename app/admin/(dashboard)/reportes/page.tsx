@@ -43,6 +43,25 @@ export default async function ReportesPage() {
     }
   }
 
+  // Contadores del mes actual
+  const periodoActual = new Date().toISOString().slice(0, 7)
+  const { data: cobrosDelMes } = await adminDb
+    .from('cobros_mensuales')
+    .select('cliente_id, copias_bn, copias_color, total_usd, estado_relacion')
+    .eq('periodo', periodoActual)
+
+  const contadores = {
+    totalClientes: clientesCount ?? 0,
+    clientesCargados: cobrosDelMes?.length ?? 0,
+    totalCopias: (cobrosDelMes ?? []).reduce((s: number, c: { copias_bn: number; copias_color: number }) => s + (c.copias_bn ?? 0) + (c.copias_color ?? 0), 0),
+    totalFacturadoUsd: (cobrosDelMes ?? []).reduce((s: number, c: { total_usd: number }) => s + (Number(c.total_usd) || 0), 0),
+    porEstado: {
+      pendiente: (cobrosDelMes ?? []).filter((c: { estado_relacion: string }) => (c.estado_relacion ?? 'pendiente') === 'pendiente').length,
+      proforma: (cobrosDelMes ?? []).filter((c: { estado_relacion: string }) => c.estado_relacion === 'proforma').length,
+      listo: (cobrosDelMes ?? []).filter((c: { estado_relacion: string }) => c.estado_relacion === 'listo').length,
+    },
+  }
+
   const data: ReportesData = {
     empleados: empleadosCount ?? 0,
     sumaSalarios,
@@ -52,6 +71,7 @@ export default async function ReportesPage() {
     tasaUsd: tasaRow?.bs_usd ?? 0,
     tasaEur: tasaRow?.bs_eur ?? 0,
     tasaFecha: tasaRow?.fecha ?? null,
+    contadores,
   }
 
   return (
