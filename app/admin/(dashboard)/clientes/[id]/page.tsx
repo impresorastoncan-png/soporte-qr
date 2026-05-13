@@ -41,7 +41,7 @@ export default async function ClienteDetallePage({
         actions={
           <>
             <SecondaryButton href={`/admin/clientes/${id}/editar`}>Editar cliente</SecondaryButton>
-            <PrimaryButton href={`/admin/clientes/${id}/stickers`}>Generar stickers</PrimaryButton>
+            <PrimaryButton href={`/admin/stickers/${id}`}>Generar stickers</PrimaryButton>
           </>
         }
       />
