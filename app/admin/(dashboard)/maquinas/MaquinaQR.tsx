@@ -40,12 +40,15 @@ export default function MaquinaQR({ serial, modelo, clienteNombre }: Props) {
     display: flex; align-items: center; gap: 5mm;
     padding: 3mm 4mm; background: white;
   }
-  .qr { flex-shrink: 0; width: 45mm; height: 45mm; }
+  .qr-wrap { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 1mm; }
+  .qr { width: 37mm; height: 37mm; }
   .qr svg { width: 100% !important; height: 100% !important; display: block; }
+  .scan-tag { font-size: 5.5pt; font-weight: 800; color: white; background: #162f52; padding: 0.8mm 2.5mm; border-radius: 1mm; letter-spacing: 0.4pt; text-transform: uppercase; white-space: nowrap; }
   .info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; height: 49mm; }
-  .logo { height: 9mm; width: auto; align-self: flex-start; }
-  .marca { font-size: 7pt; font-weight: 800; color: #162f52; letter-spacing: 0.3pt; margin-top: 0.5mm; }
-  .serial { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: 700; color: #111; margin-top: 1mm; }
+  .logo-block { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5mm; }
+  .propiedad { font-size: 5.5pt; font-weight: 800; color: #888; letter-spacing: 0.3pt; text-transform: uppercase; margin-bottom: 1mm; }
+  .logo { height: 27mm; width: auto; }
+  .serial { font-family: 'Courier New', monospace; font-size: 11pt; font-weight: 700; color: #111; margin-top: 2mm; }
   .modelo { font-size: 7pt; color: #555; margin-top: 0.5mm; }
   .contacto { font-size: 6pt; color: #333; line-height: 1.35; margin-top: auto; padding-top: 1.5mm; border-top: 0.3mm solid #e5e5e5; }
   .contacto strong { color: #162f52; }
@@ -62,11 +65,16 @@ export default function MaquinaQR({ serial, modelo, clienteNombre }: Props) {
 </head>
 <body>
   <div class="sticker">
-    <div class="qr">${svgHtml}</div>
+    <div class="qr-wrap">
+      <div class="qr">${svgHtml}</div>
+      <div class="scan-tag">Escanea para soporte</div>
+    </div>
     <div class="info">
       <div>
-        <img class="logo" src="${logoUrl}" alt="Toncan Digital" />
-        <div class="marca">TONCAN DIGITAL</div>
+        <div class="logo-block">
+          <div class="propiedad">Propiedad de:</div>
+          <img class="logo" src="${logoUrl}" alt="Toncan Digital" />
+        </div>
         <div class="serial">${serial}</div>
         <div class="modelo">${modelo}</div>
       </div>
