@@ -37,15 +37,10 @@ export async function sendSolicitudEmail(params: SendSolicitudEmailParams) {
   params.tecnicosEmails.forEach(e => destinatariosSet.add(e))
   if (params.encargadoEmail) destinatariosSet.add(params.encargadoEmail)
   destinatariosSet.add(process.env.EMAIL_ALMACEN!)
-  destinatariosSet.add(process.env.EMAIL_GERENTE_TEC!)
+  destinatariosSet.add(process.env.EMAIL_SOPORTE!)
 
-  // TEMPORAL: mientras el dominio no esté verificado en Resend, solo se puede
-  // enviar a impresorastoncan@gmail.com. Filtrar el resto para pruebas.
-  const ALLOWED_TEST_EMAIL = 'impresorastoncan@gmail.com'
-  const to = Array.from(destinatariosSet).filter(e => e === ALLOWED_TEST_EMAIL)
-  if (to.length === 0) to.push(ALLOWED_TEST_EMAIL)
-  const cc =
-    params.correoSolicitante === ALLOWED_TEST_EMAIL ? [params.correoSolicitante] : []
+  const to = Array.from(destinatariosSet)
+  const cc = params.correoSolicitante ? [params.correoSolicitante] : []
 
   const html = await render(
     SolicitudEmail({
