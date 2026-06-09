@@ -46,6 +46,16 @@ export default function ClienteForm({ cliente }: { cliente?: ClienteRow }) {
         </Field>
       </div>
 
+      <Field label="Correo fijo del cliente" hint="opcional — siempre recibirá copia de los tickets">
+        <input
+          type="email"
+          name="email_fijo"
+          defaultValue={cliente?.email_fijo ?? ''}
+          className={inputClass}
+          placeholder="soporte@cliente.com"
+        />
+      </Field>
+
       <Field label="Dirección" hint="opcional">
         <textarea
           name="direccion"

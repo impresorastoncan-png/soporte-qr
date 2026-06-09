@@ -15,11 +15,15 @@ export async function guardarCliente(
   const rif = (formData.get('rif') as string)?.trim() || null
   const direccion = (formData.get('direccion') as string)?.trim() || null
   const atc_email = (formData.get('atc_email') as string)?.trim().toLowerCase()
+  const email_fijo = (formData.get('email_fijo') as string)?.trim().toLowerCase() || null
   const activo = formData.get('activo') === 'on'
 
   if (!nombre || nombre.length < 2) return { error: 'El nombre es obligatorio' }
   if (!atc_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(atc_email)) {
     return { error: 'Correo del ATC inválido' }
+  }
+  if (email_fijo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_fijo)) {
+    return { error: 'Correo fijo del cliente inválido' }
   }
 
   const supabase = await createSSRClient()
@@ -27,7 +31,7 @@ export async function guardarCliente(
   if (id) {
     const { error } = await supabase
       .from('clientes')
-      .update({ nombre, rif, direccion, atc_email, activo })
+      .update({ nombre, rif, direccion, atc_email, email_fijo, activo })
       .eq('id', id)
     if (error) return { error: error.message }
 
@@ -41,7 +45,7 @@ export async function guardarCliente(
   } else {
     const { error } = await supabase
       .from('clientes')
-      .insert({ nombre, rif, direccion, atc_email, activo })
+      .insert({ nombre, rif, direccion, atc_email, email_fijo, activo })
     if (error) {
       if (error.code === '23505') return { error: 'Ya existe un cliente con ese nombre' }
       return { error: error.message }

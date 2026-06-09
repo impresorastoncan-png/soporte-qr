@@ -14,6 +14,7 @@ interface SendSolicitudEmailParams {
   modelo: string
   serial: string
   atcEmail: string
+  emailFijo?: string | null
   tecnicosEmails: string[]
   encargadoEmail?: string | null
   correoSolicitante?: string | null
@@ -34,6 +35,7 @@ export async function sendSolicitudEmail(params: SendSolicitudEmailParams) {
   // Construir lista de destinatarios (sin duplicados)
   const destinatariosSet = new Set<string>()
   destinatariosSet.add(params.atcEmail)
+  if (params.emailFijo) destinatariosSet.add(params.emailFijo)
   params.tecnicosEmails.forEach(e => destinatariosSet.add(e))
   if (params.encargadoEmail) destinatariosSet.add(params.encargadoEmail)
   destinatariosSet.add(process.env.EMAIL_ALMACEN!)
@@ -62,7 +64,7 @@ export async function sendSolicitudEmail(params: SendSolicitudEmailParams) {
   )
 
   const { data, error } = await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+    from: process.env.EMAIL_FROM ?? 'Toncan Digital <noreply@toncandigital.com>',
     to,
     cc,
     subject,

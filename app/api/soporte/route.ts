@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // 2. Buscar cliente
     const { data: cliente } = await anonClient
       .from('clientes')
-      .select('id, nombre, atc_email, activo')
+      .select('id, nombre, atc_email, email_fijo, activo')
       .eq('id', maquina.cliente_id)
       .single()
 
@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
         modelo: maquina.modelo,
         serial: maquina.serial,
         atcEmail: cliente.atc_email,
+        emailFijo: cliente.email_fijo,
         tecnicosEmails,
         encargadoEmail: maquina.encargado_email,
         correoSolicitante: data.correo_solicitante?.trim() || null,
@@ -112,7 +113,14 @@ export async function POST(request: NextRequest) {
         fotosUrls: data.fotos_urls && data.fotos_urls.length > 0 ? data.fotos_urls : null,
       })
     } catch (emailError) {
-      console.error('Error enviando email (solicitud guardada igualmente):', emailError)
+      console.error('=== ERROR ENVIANDO EMAIL ===')
+      console.error('Ticket:', ticketId)
+      console.error('Cliente:', cliente.nombre, '| ATC:', cliente.atc_email)
+      console.error('EMAIL_ALMACEN:', process.env.EMAIL_ALMACEN)
+      console.error('EMAIL_SOPORTE:', process.env.EMAIL_SOPORTE)
+      console.error('EMAIL_FROM:', process.env.EMAIL_FROM)
+      console.error('Error:', emailError)
+      console.error('===========================')
     }
 
     return Response.json({ success: true, ticketId, solicitudId: solicitud.id }, { status: 201 })

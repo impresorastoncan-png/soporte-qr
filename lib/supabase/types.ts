@@ -5,6 +5,7 @@ export interface ClienteRow {
   rif: string | null
   direccion: string | null
   atc_email: string
+  email_fijo: string | null
   activo: boolean
   es_almacen: boolean
   created_at: string
@@ -78,6 +79,7 @@ export interface ClienteInsert {
   rif?: string | null
   direccion?: string | null
   atc_email: string
+  email_fijo?: string | null
   activo?: boolean
   es_almacen?: boolean
   created_at?: string
