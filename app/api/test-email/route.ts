@@ -1,28 +1,23 @@
-import { sendSolicitudEmail } from '@/lib/email'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function GET() {
-  try {
-    await sendSolicitudEmail({
-      ticketId: 'TKT-TEST01',
-      fecha: new Date().toLocaleDateString('es-VE'),
-      clienteNombre: 'TEST CLIENTE',
-      ubicacion: 'Oficina de prueba',
-      modelo: 'Kyocera TASKalfa',
-      serial: 'TEST-SERIAL',
-      atcEmail: 'atc2@toncandigital.com',
-      emailFijo: null,
-      tecnicosEmails: [],
-      encargadoEmail: null,
-      correoSolicitante: 'jomore.mail@gmail.com',
-      urgencia: 'baja',
-      necesitaToner: false,
-      tipoProblema: 'Diagnóstico',
-      descripcion: 'Este es un email de prueba para verificar que el sistema funciona correctamente.',
-      fotosUrls: null,
-    })
-    return Response.json({ ok: true, message: 'Email enviado exitosamente' })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return Response.json({ ok: false, error: msg }, { status: 500 })
-  }
+  const to = ['jo.moreno@correo.unimet.edu.ve', 'jomore.mail@gmail.com']
+  const from = process.env.EMAIL_FROM ?? 'Toncan Digital <noreply@toncandigital.com>'
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to,
+    subject: '✅ [TEST] Diagnóstico de envío de correos Toncan',
+    html: '<p>Si recibes este correo, el sistema de envío funciona correctamente.</p><p><b>FROM:</b> ' + from + '</p><p><b>TO:</b> ' + to.join(', ') + '</p>',
+  })
+
+  return Response.json({
+    from,
+    to,
+    resendData: data,
+    resendError: error,
+    apiKey: process.env.RESEND_API_KEY ? `${process.env.RESEND_API_KEY.slice(0, 8)}...` : 'NOT SET',
+  })
 }
