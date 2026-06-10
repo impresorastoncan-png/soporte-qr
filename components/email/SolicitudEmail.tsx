@@ -12,6 +12,7 @@ interface SolicitudEmailProps {
   ubicacion: string
   modelo: string
   serial: string
+  contador: number
   tecnicosEmails: string[]
   encargadoEmail?: string | null
   correoSolicitante?: string | null
@@ -29,6 +30,7 @@ export function SolicitudEmail({
   ubicacion,
   modelo,
   serial,
+  contador,
   tecnicosEmails,
   encargadoEmail,
   correoSolicitante,
@@ -76,6 +78,7 @@ export function SolicitudEmail({
                 <DataRow label="UBICACIÓN" value={ubicacion} />
                 <DataRow label="MODELO" value={modelo} />
                 <DataRow label="SERIAL" value={serial} mono />
+                <DataRow label="CONTADOR" value={contador.toLocaleString('es-VE')} mono />
                 <DataRow label="TÉCNICO(S)" value={tecnicosEmails.join(', ') || 'Sin técnico asignado'} />
                 {encargadoEmail && <DataRow label="ENCARGADO" value={encargadoEmail} />}
                 {correoSolicitante && <DataRow label="CORREO SOL." value={correoSolicitante} />}
@@ -127,7 +130,7 @@ export function SolicitudEmail({
               <Link href="mailto:gerenciaatc@toncandigital.com" style={{ color: '#162f52' }}>
                 gerenciaatc@toncandigital.com
               </Link>{' '}
-              · (0212) 735 1960/1961
+              · 0212 2851926 / 7404501
             </Text>
           </Section>
 

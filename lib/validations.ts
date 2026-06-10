@@ -8,6 +8,7 @@ export const solicitudSchema = z.object({
   necesita_toner: z.boolean(),
   tipo_problema: z.string().optional(),
   descripcion: z.string().min(10, 'Describa el problema (mínimo 10 caracteres)'),
+  contador: z.coerce.number().int('El contador debe ser un número entero').min(0, 'El contador no puede ser negativo'),
   fotos_urls: z.array(z.string().url()).optional(),
 })
 

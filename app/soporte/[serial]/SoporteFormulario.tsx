@@ -34,6 +34,7 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
     necesita_toner: '' as 'si' | 'no' | '',
     tipo_problema: '',
     descripcion: '',
+    contador: '',
   })
 
   const [fotos, setFotos] = useState<File[]>([])
@@ -53,6 +54,10 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
     if (!form.necesita_toner) e.necesita_toner = 'Indique si necesita tóner'
     if (!form.descripcion.trim() || form.descripcion.trim().length < 10) {
       e.descripcion = 'Describa el problema (mínimo 10 caracteres)'
+    }
+    const contadorNum = parseInt(form.contador, 10)
+    if (form.contador === '' || isNaN(contadorNum) || contadorNum < 0) {
+      e.contador = 'Ingrese el contador actual del equipo (número en la pantalla)'
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -100,6 +105,7 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
           necesita_toner: form.necesita_toner === 'si',
           tipo_problema: form.tipo_problema || undefined,
           descripcion: form.descripcion.trim(),
+          contador: parseInt(form.contador, 10),
           fotos_urls: fotosUrls.length > 0 ? fotosUrls : undefined,
         }),
       })
@@ -275,6 +281,26 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
             </select>
           </div>
 
+          {/* Contador */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Contador actual del equipo <span className="text-red-500">*</span>
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Ingrese el número que aparece en la pantalla del equipo como "contador total" o "total de copias".
+            </p>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              value={form.contador}
+              onChange={e => setForm(f => ({ ...f, contador: e.target.value }))}
+              className={`w-full border rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500 ${errors.contador ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+              placeholder="Ej: 154320"
+            />
+            {errors.contador && <p className="text-red-500 text-xs mt-1">{errors.contador}</p>}
+          </div>
+
           {/* Descripción */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
@@ -348,7 +374,7 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
             <a href="mailto:soporte@toncandigital.com" className="text-blue-600 hover:underline">
               soporte@toncandigital.com
             </a>{' '}
-            · (0212) 735 1960/1961
+            · 0212 2851926 / 7404501
           </p>
         </div>
       </main>

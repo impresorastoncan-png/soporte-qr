@@ -50,6 +50,7 @@ export interface SolicitudRow {
   necesita_toner: boolean
   tipo_problema: string | null
   descripcion: string
+  contador: number
   fotos_urls: string[] | null
   estado: 'pendiente' | 'en_proceso' | 'resuelto'
   ticket_id: string
@@ -124,6 +125,7 @@ export interface SolicitudInsert {
   necesita_toner: boolean
   tipo_problema?: string | null
   descripcion: string
+  contador: number
   fotos_urls?: string[] | null
   estado?: 'pendiente' | 'en_proceso' | 'resuelto'
   ticket_id: string

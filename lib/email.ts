@@ -13,6 +13,7 @@ interface SendSolicitudEmailParams {
   ubicacion: string
   modelo: string
   serial: string
+  contador: number
   atcEmail: string
   emailFijo?: string | null
   tecnicosEmails: string[]
@@ -52,6 +53,7 @@ export async function sendSolicitudEmail(params: SendSolicitudEmailParams) {
       ubicacion: params.ubicacion,
       modelo: params.modelo,
       serial: params.serial,
+      contador: params.contador,
       tecnicosEmails: params.tecnicosEmails,
       encargadoEmail: params.encargadoEmail,
       correoSolicitante: params.correoSolicitante,

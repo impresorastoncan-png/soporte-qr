@@ -191,6 +191,12 @@ export default function TablaSolicitudes({ solicitudes }: { solicitudes: Solicit
                   <p className="text-[11px] text-gray-400 uppercase font-semibold mb-0.5">Modelo</p>
                   <p className="text-gray-800">{selected.modelo}</p>
                 </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 uppercase font-semibold mb-0.5">Contador</p>
+                  <p className="font-mono text-sm font-bold text-gray-800">
+                    {selected.contador.toLocaleString('es-VE')}
+                  </p>
+                </div>
                 <div className="col-span-2">
                   <p className="text-[11px] text-gray-400 uppercase font-semibold mb-0.5">Ubicación</p>
                   <p className="text-gray-800">{selected.ubicacion || '—'}</p>
