@@ -97,7 +97,8 @@ Recipients are assembled with a `Set<string>` to avoid duplicates:
 | `maquinas` | Machines; `serial` is the QR identifier, `cliente_id` FK |
 | `maquina_tecnicos` | Many-to-many junction: machines ↔ technicians |
 | `tecnicos` | Technicians with `email` |
-| `solicitudes` | Support tickets; `urgencia` enum (baja/media/alta/critica), `estado` enum (pendiente/en_proceso/resuelto) |
+| `solicitudes` | Support tickets; `urgencia` enum (baja/media/alta/critica), `estado` enum (pendiente/en_proceso/resuelto), `contador` (copy count at time of report) |
+| `visitas_tecnicas` | Field visit log; one row per technician per ticket; tracks `hora_llegada`, `foto_llegada_url`, `descripcion_falla`, `descripcion_solucion`, `firma_cliente_data` (base64 PNG), `nombre_firmante`, `hora_cierre` |
 | `v_maquinas_detalle` | View joining machines + clients + aggregated technicians |
 
 **`admin` schema** (HR, billing, counters — accessed only via `createAdminSSRClient()`):
@@ -110,6 +111,8 @@ Recipients are assembled with a `Set<string>` to avoid duplicates:
 | `tasas_cambio` | BCV exchange rates; `bs_usd`, `bs_eur`, `fecha` — shown in admin header |
 | `cobros_mensuales` | Monthly billing per client; `periodo` (YYYY-MM), `copias_bn/color`, `total_usd`, `estado_relacion` (pendiente/proforma/listo), `aplica_minimo` |
 | `lecturas_contador` | Counter reading history per machine per period |
+
+Supabase Storage bucket `visitas-fotos` holds arrival photos uploaded by technicians; signed URLs (1-year TTL) are stored in `visitas_tecnicas.foto_llegada_url`.
 
 All SQL migrations are in `supabase_schema.md` (§1–§13), to be run in Supabase SQL Editor.
 
@@ -131,6 +134,18 @@ Protected layout under `app/admin/(dashboard)/`. Uses Supabase Realtime for the 
 - Creates/updates machines in `public.maquinas` by serial
 - Inserts reading history into `admin.lecturas_contador`
 - Upserts billing record into `admin.cobros_mensuales`, applying `copiado_minimo`/`tarifa_fija_usd` from `public.clientes` when actual copies fall below the minimum
+
+### Technician field board (`/tecnicos`)
+
+`/tecnicos` is a **public, unauthenticated** mobile board for field technicians. No session required — identity is selected at login and stored in `localStorage` under key `toncan_tecnico` (`{ id, nombre }`). The board shows pending/in-progress tickets; technicians "claim" a ticket, which creates a `visitas_tecnicas` row and transitions the `solicitudes.estado` to `en_proceso`.
+
+Visit flow: `reclamar` → `iniciar` (arrival photo upload) → `completar` (falla + solucion + digital signature). Each action POSTs to `/api/tecnicos/visita`. On completion the `solicitudes.estado` becomes `resuelto`.
+
+**Do not guard `/tecnicos` with Supabase auth middleware.** It is intentionally public.
+
+### Admin metrics (`/admin/metricas`)
+
+`/admin/metricas` is a server-rendered dashboard that reads from `visitas_tecnicas` and `solicitudes` to compute average response/resolution times per technician, resolved tickets by urgency, and visits per month per technician. Charts use `recharts` client components (`components/admin/metricas/`).
 
 ### Portal (field staff)
 

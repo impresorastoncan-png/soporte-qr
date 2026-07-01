@@ -419,3 +419,48 @@ select schemaname, tablename
 ```
 
 Debe devolver una fila. A partir de ese momento, cualquier INSERT/UPDATE/DELETE en `solicitudes` se empuja en tiempo real a los clientes suscritos al canal `solicitudes-live`, que es lo que usa `app/admin/live/LiveBoard.tsx`.
+
+
+---
+
+## 14. Tabla: visitas_tecnicas
+
+Registra las visitas de campo de los técnicos. Creada para el módulo `/tecnicos`.
+
+```sql
+create table if not exists public.visitas_tecnicas (
+  id                   uuid primary key default gen_random_uuid(),
+  solicitud_id         uuid not null references public.solicitudes(id) on delete cascade,
+  tecnico_id           uuid not null references public.tecnicos(id),
+  tecnico_nombre       text not null,
+  hora_llegada         timestamptz,
+  foto_llegada_url     text,
+  descripcion_solucion text,
+  descripcion_falla    text,
+  firma_cliente_data   text,
+  nombre_firmante      text,
+  hora_cierre          timestamptz,
+  created_at           timestamptz not null default now()
+);
+
+create index if not exists idx_visitas_tecnicas_tecnico_id
+  on public.visitas_tecnicas(tecnico_id);
+
+create index if not exists idx_visitas_tecnicas_solicitud_id
+  on public.visitas_tecnicas(solicitud_id);
+
+create index if not exists idx_visitas_tecnicas_hora_cierre
+  on public.visitas_tecnicas(hora_cierre);
+
+alter table public.visitas_tecnicas enable row level security;
+-- Todas las escrituras van por service client (bypasa RLS automáticamente).
+-- No se necesita policy pública de lectura — el admin lee vía SSR con service key.
+```
+
+También crear el bucket de almacenamiento para fotos de llegada (si no existe ya):
+
+```sql
+insert into storage.buckets (id, name, public)
+values ('visitas-fotos', 'visitas-fotos', false)
+on conflict (id) do nothing;
+```

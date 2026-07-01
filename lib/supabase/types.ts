@@ -175,6 +175,12 @@ export type Database = {
         Update: Partial<SolicitudInsert>
         Relationships: []
       }
+      visitas_tecnicas: {
+        Row: VisitaTecnicaRow
+        Insert: VisitaTecnicaInsert
+        Update: Partial<VisitaTecnicaInsert>
+        Relationships: []
+      }
     }
     Views: {
       v_maquinas_detalle: {
@@ -188,12 +194,42 @@ export type Database = {
   }
 }
 
+export interface VisitaTecnicaRow {
+  id: string
+  solicitud_id: string
+  tecnico_id: string
+  tecnico_nombre: string
+  hora_llegada: string | null
+  foto_llegada_url: string | null
+  descripcion_falla: string | null
+  descripcion_solucion: string | null
+  firma_cliente_data: string | null
+  nombre_firmante: string | null
+  hora_cierre: string | null
+  created_at: string
+}
+
+export interface VisitaTecnicaInsert {
+  id?: string
+  solicitud_id: string
+  tecnico_id: string
+  tecnico_nombre: string
+  hora_llegada?: string | null
+  foto_llegada_url?: string | null
+  descripcion_falla?: string | null
+  descripcion_solucion?: string | null
+  firma_cliente_data?: string | null
+  nombre_firmante?: string | null
+  hora_cierre?: string | null
+}
+
 // Shortcuts
 export type Cliente = ClienteRow
 export type Tecnico = TecnicoRow
 export type Maquina = MaquinaRow
 export type Solicitud = SolicitudRow
 export type MaquinaDetalle = MaquinaDetalleRow
+export type VisitaTecnica = VisitaTecnicaRow
 
 export type Urgencia = 'baja' | 'media' | 'alta' | 'critica'
 export type EstadoSolicitud = 'pendiente' | 'en_proceso' | 'resuelto'

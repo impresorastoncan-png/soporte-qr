@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { render } from '@react-email/components'
 import { SolicitudEmail } from '@/components/email/SolicitudEmail'
+import { ConfirmacionClienteEmail } from '@/components/email/ConfirmacionClienteEmail'
 import { urgenciaConfig } from './utils'
 import type { Urgencia } from './supabase/types'
 
@@ -76,6 +77,48 @@ export async function sendSolicitudEmail(params: SendSolicitudEmailParams) {
   if (error) {
     console.error('Error enviando email:', error)
     throw new Error(`Error al enviar notificación: ${error.message}`)
+  }
+
+  return data
+}
+
+interface SendConfirmacionEmailParams {
+  ticketId: string
+  fecha: string
+  clienteNombre: string
+  ubicacion: string
+  modelo: string
+  nombreSolicitante: string
+  correoSolicitante: string
+  urgencia: Urgencia
+}
+
+export async function sendConfirmacionEmail(params: SendConfirmacionEmailParams) {
+  const urg = urgenciaConfig[params.urgencia]
+  const subject = `${urg.emoji} [${params.ticketId}] Su solicitud fue recibida — Toncan Digital`
+
+  const html = await render(
+    ConfirmacionClienteEmail({
+      ticketId: params.ticketId,
+      fecha: params.fecha,
+      clienteNombre: params.clienteNombre,
+      ubicacion: params.ubicacion,
+      modelo: params.modelo,
+      nombreSolicitante: params.nombreSolicitante,
+      urgencia: params.urgencia,
+    })
+  )
+
+  const { data, error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM ?? 'Toncan Digital <noreply@toncandigital.com>',
+    to: [params.correoSolicitante],
+    subject,
+    html,
+  })
+
+  if (error) {
+    console.error('Error enviando confirmación al cliente:', error)
+    throw new Error(`Error al enviar confirmación: ${error.message}`)
   }
 
   return data

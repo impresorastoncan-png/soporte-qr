@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const solicitudSchema = z.object({
   serial: z.string().min(1),
   nombre_solicitante: z.string().min(2, 'Ingrese su nombre completo'),
-  correo_solicitante: z.string().email('Correo inválido').optional().or(z.literal('')),
+  correo_solicitante: z.string().email('Correo electrónico inválido').min(1, 'Ingrese su correo electrónico'),
   urgencia: z.enum(['baja', 'media', 'alta', 'critica']),
   necesita_toner: z.boolean(),
   tipo_problema: z.string().optional(),

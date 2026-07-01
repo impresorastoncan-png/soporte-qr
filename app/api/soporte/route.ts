@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createServiceClient, createAnonClient } from '@/lib/supabase/server'
 import { solicitudSchema } from '@/lib/validations'
-import { sendSolicitudEmail } from '@/lib/email'
+import { sendSolicitudEmail, sendConfirmacionEmail } from '@/lib/email'
 import { generarTicketId, formatearFecha } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         modelo: maquina.modelo,
         ubicacion: maquina.ubicacion,
         nombre_solicitante: data.nombre_solicitante.trim(),
-        correo_solicitante: data.correo_solicitante?.trim() || null,
+        correo_solicitante: data.correo_solicitante.trim(),
         urgencia: data.urgencia,
         necesita_toner: data.necesita_toner,
         tipo_problema: data.tipo_problema || null,
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: 'Error al registrar la solicitud' }, { status: 500 })
     }
 
-    // 5. Enviar emails
+    // 5. Enviar emails (bloques independientes — un fallo no suprime el otro)
     try {
       await sendSolicitudEmail({
         ticketId,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         emailFijo: cliente.email_fijo,
         tecnicosEmails,
         encargadoEmail: maquina.encargado_email,
-        correoSolicitante: data.correo_solicitante?.trim() || null,
+        correoSolicitante: data.correo_solicitante.trim(),
         urgencia: data.urgencia,
         necesitaToner: data.necesita_toner,
         tipoProblema: data.tipo_problema || null,
@@ -115,14 +115,29 @@ export async function POST(request: NextRequest) {
         fotosUrls: data.fotos_urls && data.fotos_urls.length > 0 ? data.fotos_urls : null,
       })
     } catch (emailError) {
-      console.error('=== ERROR ENVIANDO EMAIL ===')
+      console.error('=== ERROR ENVIANDO EMAIL STAFF ===')
       console.error('Ticket:', ticketId)
       console.error('Cliente:', cliente.nombre, '| ATC:', cliente.atc_email)
       console.error('EMAIL_ALMACEN:', process.env.EMAIL_ALMACEN)
       console.error('EMAIL_SOPORTE:', process.env.EMAIL_SOPORTE)
       console.error('EMAIL_FROM:', process.env.EMAIL_FROM)
       console.error('Error:', emailError)
-      console.error('===========================')
+      console.error('==================================')
+    }
+
+    try {
+      await sendConfirmacionEmail({
+        ticketId,
+        fecha: fechaFormateada,
+        clienteNombre: cliente.nombre,
+        ubicacion: maquina.ubicacion,
+        modelo: maquina.modelo,
+        nombreSolicitante: data.nombre_solicitante.trim(),
+        correoSolicitante: data.correo_solicitante.trim(),
+        urgencia: data.urgencia,
+      })
+    } catch (confirmError) {
+      console.error('Error enviando confirmación al cliente:', confirmError)
     }
 
     return Response.json({ success: true, ticketId, solicitudId: solicitud.id }, { status: 201 })

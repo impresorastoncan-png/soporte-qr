@@ -47,8 +47,10 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
     if (!form.nombre_solicitante.trim() || form.nombre_solicitante.trim().length < 2) {
       e.nombre_solicitante = 'Ingrese su nombre completo'
     }
-    if (form.correo_solicitante && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo_solicitante)) {
-      e.correo_solicitante = 'Correo inválido'
+    if (!form.correo_solicitante.trim()) {
+      e.correo_solicitante = 'Ingrese su correo electrónico'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo_solicitante)) {
+      e.correo_solicitante = 'Correo electrónico inválido'
     }
     if (!form.urgencia) e.urgencia = 'Seleccione el nivel de urgencia'
     if (!form.necesita_toner) e.necesita_toner = 'Indique si necesita tóner'
@@ -100,7 +102,7 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
         body: JSON.stringify({
           serial,
           nombre_solicitante: form.nombre_solicitante.trim(),
-          correo_solicitante: form.correo_solicitante.trim() || undefined,
+          correo_solicitante: form.correo_solicitante.trim(),
           urgencia: form.urgencia,
           necesita_toner: form.necesita_toner === 'si',
           tipo_problema: form.tipo_problema || undefined,
@@ -187,9 +189,11 @@ export default function SoporteFormulario({ serial, modelo, ubicacion, clienteNo
           {/* Correo */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Correo electrónico{' '}
-              <span className="text-gray-400 font-normal">(opcional — recibirá copia de la notificación)</span>
+              Correo electrónico <span className="text-red-500">*</span>
             </label>
+            <p className="text-xs text-gray-500 mb-2">
+              Recibirá una confirmación directa de que su solicitud fue recibida.
+            </p>
             <input
               type="email"
               value={form.correo_solicitante}

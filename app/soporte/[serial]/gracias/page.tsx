@@ -50,9 +50,9 @@ export default async function GraciasPage({
         <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-8 text-left">
           <p className="text-sm text-blue-800 font-semibold mb-1">¿Qué pasa ahora?</p>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• El equipo técnico fue notificado por correo.</li>
-            <li>• Un técnico se pondrá en contacto con usted.</li>
-            <li>• Si ingresó su correo, recibirá una copia de la notificación.</li>
+            <li>• El equipo técnico fue notificado de inmediato.</li>
+            <li>• Recibirá un correo de confirmación a la dirección que proporcionó.</li>
+            <li>• Un técnico estará en vía para atender su reporte pronto.</li>
           </ul>
         </div>
 
