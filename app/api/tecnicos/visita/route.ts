@@ -42,17 +42,6 @@ export async function POST(request: NextRequest) {
         return Response.json({ error: 'Faltan campos requeridos' }, { status: 400 })
       }
 
-      // Verificar que la solicitud aún está pendiente (evitar doble reclamo)
-      const { data: sol } = await serviceClient
-        .from('solicitudes')
-        .select('estado')
-        .eq('id', solicitudId)
-        .single()
-
-      if (!sol || sol.estado !== 'pendiente') {
-        return Response.json({ error: 'Esta solicitud ya fue tomada por otro técnico' }, { status: 409 })
-      }
-
       const { data: visita, error: insertError } = await serviceClient
         .from('visitas_tecnicas')
         .insert({
@@ -65,13 +54,15 @@ export async function POST(request: NextRequest) {
 
       if (insertError || !visita) {
         console.error('Error creando visita:', insertError)
-        return Response.json({ error: 'Error al reclamar solicitud' }, { status: 500 })
+        return Response.json({ error: 'Error al crear visita' }, { status: 500 })
       }
 
+      // Solo avanza a en_proceso si aún estaba pendiente
       await serviceClient
         .from('solicitudes')
         .update({ estado: 'en_proceso' })
         .eq('id', solicitudId)
+        .eq('estado', 'pendiente')
 
       return Response.json({ success: true, visitaId: visita.id })
     }

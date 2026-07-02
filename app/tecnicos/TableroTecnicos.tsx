@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { urgenciaConfig, formatearFecha } from '@/lib/utils'
 import type { Urgencia } from '@/lib/supabase/types'
 
@@ -36,6 +35,8 @@ function sortSolicitudes(list: SolicitudCard[]): SolicitudCard[] {
   })
 }
 
+const POLL_INTERVAL = 20_000
+
 export default function TableroTecnicos({
   tecnicos,
   solicitudesIniciales,
@@ -46,11 +47,12 @@ export default function TableroTecnicos({
   const router = useRouter()
   const [identidad, setIdentidad] = useState<Tecnico | null>(null)
   const [mostrandoSelector, setMostrandoSelector] = useState(false)
+  const [pendingNav, setPendingNav] = useState<string | null>(null)
   const [solicitudes, setSolicitudes] = useState<SolicitudCard[]>(sortSolicitudes(solicitudesIniciales))
-  const [reclamando, setReclamando] = useState<string | null>(null)
-  const [errorReclamo, setErrorReclamo] = useState('')
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date>(new Date())
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Leer identidad de localStorage al montar
+  // Leer identidad guardada — no bloquea la vista
   useEffect(() => {
     try {
       const stored = localStorage.getItem('toncan_tecnico')
@@ -58,88 +60,46 @@ export default function TableroTecnicos({
         const parsed = JSON.parse(stored) as Tecnico
         if (tecnicos.find(t => t.id === parsed.id)) {
           setIdentidad(parsed)
-        } else {
-          setMostrandoSelector(true)
         }
-      } else {
-        setMostrandoSelector(true)
       }
-    } catch {
-      setMostrandoSelector(true)
-    }
+    } catch { /* ignore */ }
   }, [tecnicos])
 
-  // Supabase Realtime: suscribirse a cambios en solicitudes
-  useEffect(() => {
-    const supabase = createClient()
-
-    const channel = supabase
-      .channel('tecnicos-tablero')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'solicitudes' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const nueva = payload.new as SolicitudCard
-            if (nueva.estado === 'pendiente' || nueva.estado === 'en_proceso') {
-              setSolicitudes(prev => sortSolicitudes([...prev, nueva]))
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const actualizada = payload.new as any
-            setSolicitudes(prev => {
-              const filtrada = prev.filter(s => s.id !== actualizada.id)
-              if (actualizada.estado === 'resuelto') return sortSolicitudes(filtrada)
-              return sortSolicitudes([...filtrada, actualizada as SolicitudCard])
-            })
-          } else if (payload.eventType === 'DELETE') {
-            setSolicitudes(prev => prev.filter(s => s.id !== payload.old.id))
-          }
-        }
-      )
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
+  // Polling — fuente principal de actualización en vivo
+  const fetchSolicitudes = useCallback(async () => {
+    try {
+      const res = await fetch('/api/tecnicos/solicitudes')
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.solicitudes) {
+        setSolicitudes(sortSolicitudes(data.solicitudes))
+        setUltimaActualizacion(new Date())
+      }
+    } catch { /* ignore network errors */ }
   }, [])
+
+  useEffect(() => {
+    pollRef.current = setInterval(fetchSolicitudes, POLL_INTERVAL)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [fetchSolicitudes])
 
   const seleccionarTecnico = useCallback((tecnico: Tecnico) => {
     localStorage.setItem('toncan_tecnico', JSON.stringify(tecnico))
     setIdentidad(tecnico)
     setMostrandoSelector(false)
-  }, [])
-
-  async function reclamarSolicitud(solicitudId: string) {
-    if (!identidad) { setMostrandoSelector(true); return }
-    setReclamando(solicitudId)
-    setErrorReclamo('')
-
-    try {
-      const fd = new FormData()
-      fd.append('action', 'reclamar')
-      fd.append('solicitudId', solicitudId)
-      fd.append('tecnicoId', identidad.id)
-      fd.append('tecnicoNombre', identidad.nombre)
-
-      const res = await fetch('/api/tecnicos/visita', { method: 'POST', body: fd })
-      const data = await res.json()
-
-      if (res.status === 409) {
-        setErrorReclamo('Esta solicitud ya fue tomada por otro técnico.')
-        setReclamando(null)
-        return
-      }
-
-      if (!res.ok || !data.visitaId) {
-        setErrorReclamo(data.error ?? 'Error al tomar la solicitud')
-        setReclamando(null)
-        return
-      }
-
-      router.push(`/tecnicos/solicitudes/${solicitudId}?visitaId=${data.visitaId}`)
-    } catch {
-      setErrorReclamo('Error de conexión. Intente nuevamente.')
-      setReclamando(null)
+    if (pendingNav) {
+      router.push(pendingNav)
+      setPendingNav(null)
     }
+  }, [router, pendingNav])
+
+  function irASolicitud(id: string) {
+    if (!identidad) {
+      setPendingNav(`/tecnicos/solicitudes/${id}`)
+      setMostrandoSelector(true)
+      return
+    }
+    router.push(`/tecnicos/solicitudes/${id}`)
   }
 
   const pendientes = solicitudes.filter(s => s.estado === 'pendiente')
@@ -147,49 +107,77 @@ export default function TableroTecnicos({
 
   return (
     <>
-      {/* Gate de identidad — overlay fullscreen */}
+      {/* Modal selector de técnico — aparece solo al intentar atender */}
       {mostrandoSelector && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: '#162f52' }}>
-          <div className="flex-1 flex flex-col justify-center px-6 py-10 max-w-sm mx-auto w-full">
-            <h1 className="text-2xl font-bold text-white mb-2">¿Quién eres?</h1>
-            <p className="text-blue-200 text-sm mb-8">
-              Selecciona tu nombre para ver el tablero de solicitudes.
-            </p>
-            <div className="space-y-3">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-4 pb-4 sm:pb-0">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-gray-800 mb-1">¿Quién eres?</h2>
+            <p className="text-sm text-gray-500 mb-5">Selecciona tu nombre para continuar.</p>
+            <div className="space-y-2">
               {tecnicos.map(tecnico => (
                 <button
                   key={tecnico.id}
                   onClick={() => seleccionarTecnico(tecnico)}
-                  className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl px-5 py-4 text-left transition-all active:scale-[0.98] flex items-center gap-3"
+                  className="w-full border border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-2xl px-4 py-3 text-left transition-all active:scale-[0.98] flex items-center gap-3"
                 >
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-base shrink-0"
+                    style={{ backgroundColor: '#162f52' }}
+                  >
                     {tecnico.nombre.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-base font-semibold">{tecnico.nombre}</span>
+                  <span className="font-semibold text-gray-800">{tecnico.nombre}</span>
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => { setMostrandoSelector(false); setPendingNav(null) }}
+              className="mt-4 w-full text-sm text-gray-400 py-2"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}
 
-      {/* Tablero principal */}
+      {/* Tablero principal — siempre visible */}
       <div className="max-w-lg mx-auto px-4 pt-4 pb-12">
-        {/* Barra de identidad */}
-        {identidad && (
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-xs text-gray-400 uppercase font-semibold">Técnico</p>
-              <p className="text-base font-bold text-gray-800">{identidad.nombre}</p>
-            </div>
+
+        {/* Barra superior */}
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            {identidad ? (
+              <>
+                <p className="text-xs text-gray-400 uppercase font-semibold">Técnico</p>
+                <p className="text-base font-bold text-gray-800">{identidad.nombre}</p>
+              </>
+            ) : (
+              <button
+                onClick={() => setMostrandoSelector(true)}
+                className="text-sm font-semibold underline"
+                style={{ color: '#162f52' }}
+              >
+                Selecciona tu nombre →
+              </button>
+            )}
+          </div>
+          <div className="text-right">
+            {identidad && (
+              <button onClick={() => setMostrandoSelector(true)} className="text-xs text-gray-400 underline block mb-1">
+                Cambiar
+              </button>
+            )}
             <button
-              onClick={() => setMostrandoSelector(true)}
+              onClick={fetchSolicitudes}
               className="text-xs text-gray-400 underline"
             >
-              Cambiar
+              Actualizar
             </button>
+            <p className="text-[10px] text-gray-300 mt-0.5">
+              {ultimaActualizacion.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Contadores rápidos */}
         <div className="grid grid-cols-2 gap-3 mb-5">
@@ -203,12 +191,6 @@ export default function TableroTecnicos({
           </div>
         </div>
 
-        {errorReclamo && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
-            <p className="text-red-700 text-sm">{errorReclamo}</p>
-          </div>
-        )}
-
         {/* Lista de solicitudes */}
         {solicitudes.length === 0 ? (
           <div className="text-center py-16">
@@ -218,21 +200,19 @@ export default function TableroTecnicos({
               </svg>
             </div>
             <p className="text-gray-500 font-medium">Sin solicitudes activas</p>
-            <p className="text-gray-400 text-sm mt-1">Actualiza si acabas de llegar.</p>
+            <p className="text-gray-400 text-sm mt-1">Se actualiza automáticamente cada 20 segundos.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {solicitudes.map(s => {
               const urg = urgenciaConfig[s.urgencia]
               const enPr = s.estado === 'en_proceso'
-              const cargando = reclamando === s.id
 
               return (
                 <div
                   key={s.id}
-                  className={`bg-white rounded-2xl shadow-sm border overflow-hidden ${enPr ? 'border-orange-200 opacity-70' : 'border-gray-200'}`}
+                  className={`bg-white rounded-2xl shadow-sm border overflow-hidden ${enPr ? 'border-orange-200' : 'border-gray-200'}`}
                 >
-                  {/* Banda de urgencia */}
                   <div style={{ backgroundColor: urg.color }} className="px-4 py-2 flex items-center justify-between">
                     <span className="text-white font-bold text-sm">
                       {urg.emoji} {urg.label.toUpperCase()}
@@ -260,25 +240,15 @@ export default function TableroTecnicos({
                     </div>
                   </div>
 
-                  {/* Botón de acción */}
-                  {!enPr ? (
-                    <div className="px-4 pb-4">
-                      <button
-                        onClick={() => reclamarSolicitud(s.id)}
-                        disabled={cargando || !!reclamando}
-                        style={{ backgroundColor: cargando ? '#6b7280' : '#162f52' }}
-                        className="w-full text-white text-sm font-semibold py-2.5 rounded-xl disabled:cursor-not-allowed transition-colors"
-                      >
-                        {cargando ? 'Tomando solicitud...' : 'Tomar esta solicitud →'}
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="px-4 pb-4">
-                      <div className="w-full text-center text-xs text-orange-500 font-medium py-2 border border-orange-200 rounded-xl">
-                        En atención por otro técnico
-                      </div>
-                    </div>
-                  )}
+                  <div className="px-4 pb-4">
+                    <button
+                      onClick={() => irASolicitud(s.id)}
+                      style={{ backgroundColor: enPr ? '#9a3412' : '#162f52' }}
+                      className="w-full text-white text-sm font-semibold py-2.5 rounded-xl transition-colors active:opacity-80"
+                    >
+                      {enPr ? 'Ver / Atender →' : 'Atender solicitud →'}
+                    </button>
+                  </div>
                 </div>
               )
             })}

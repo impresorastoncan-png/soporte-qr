@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { urgenciaConfig, formatearFecha } from '@/lib/utils'
 import type { Urgencia } from '@/lib/supabase/types'
@@ -30,7 +30,6 @@ interface SolicitudDetalle {
 
 export default function VisitaPage() {
   const { id } = useParams<{ id: string }>()
-  const searchParams = useSearchParams()
   const router = useRouter()
 
   const [solicitud, setSolicitud] = useState<SolicitudDetalle | null>(null)
@@ -39,7 +38,7 @@ export default function VisitaPage() {
   const [tecnicoNombre, setTecnicoNombre] = useState('')
 
   const [step, setStep] = useState<Step>('llegada')
-  const [visitaId, setVisitaId] = useState<string | null>(searchParams.get('visitaId'))
+  const [visitaId, setVisitaId] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState('')
 
@@ -61,12 +60,17 @@ export default function VisitaPage() {
   const [firmaCaptured, setFirmaCaptured] = useState(false)
 
   useEffect(() => {
+    let tId = ''
+    let tNombre = ''
+
     try {
       const stored = localStorage.getItem('toncan_tecnico')
       if (!stored) { router.replace('/tecnicos'); return }
-      const { id: tId, nombre } = JSON.parse(stored)
+      const parsed = JSON.parse(stored)
+      tId = parsed.id
+      tNombre = parsed.nombre
       setTecnicoId(tId)
-      setTecnicoNombre(nombre)
+      setTecnicoNombre(tNombre)
     } catch {
       router.replace('/tecnicos')
       return
@@ -78,19 +82,23 @@ export default function VisitaPage() {
         if (!data.solicitud) { router.replace('/tecnicos'); return }
         setSolicitud(data.solicitud)
 
-        // Si no viene visitaId por query param, buscar visita activa existente
-        if (!searchParams.get('visitaId')) {
-          const tStored = localStorage.getItem('toncan_tecnico')
-          if (tStored) {
-            const { id: tId } = JSON.parse(tStored)
-            const vRes = await fetch(`/api/tecnicos/visita?solicitudId=${id}&tecnicoId=${tId}`)
-            const vData = await vRes.json()
-            if (vData.visita) {
-              setVisitaId(vData.visita.id)
-              // Reanudar desde el paso correspondiente
-              if (vData.visita.hora_llegada) setStep('falla')
-            }
-          }
+        // Buscar visita activa existente para este técnico
+        const vRes = await fetch(`/api/tecnicos/visita?solicitudId=${id}&tecnicoId=${tId}`)
+        const vData = await vRes.json()
+
+        if (vData.visita) {
+          setVisitaId(vData.visita.id)
+          if (vData.visita.hora_llegada) setStep('falla')
+        } else {
+          // Auto-crear la visita: el técnico está atendiendo esta solicitud
+          const fd = new FormData()
+          fd.append('action', 'reclamar')
+          fd.append('solicitudId', id)
+          fd.append('tecnicoId', tId)
+          fd.append('tecnicoNombre', tNombre)
+          const rRes = await fetch('/api/tecnicos/visita', { method: 'POST', body: fd })
+          const rData = await rRes.json()
+          if (rData.visitaId) setVisitaId(rData.visitaId)
         }
 
         setLoading(false)
