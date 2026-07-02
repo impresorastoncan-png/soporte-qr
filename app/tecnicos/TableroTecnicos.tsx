@@ -49,7 +49,7 @@ export default function TableroTecnicos({
   const [mostrandoSelector, setMostrandoSelector] = useState(false)
   const [pendingNav, setPendingNav] = useState<string | null>(null)
   const [solicitudes, setSolicitudes] = useState<SolicitudCard[]>(sortSolicitudes(solicitudesIniciales))
-  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date>(new Date())
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Leer identidad guardada — no bloquea la vista
@@ -79,6 +79,8 @@ export default function TableroTecnicos({
   }, [])
 
   useEffect(() => {
+    // Primer fetch inmediato para mostrar datos frescos al montar
+    fetchSolicitudes()
     pollRef.current = setInterval(fetchSolicitudes, POLL_INTERVAL)
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [fetchSolicitudes])
@@ -173,9 +175,11 @@ export default function TableroTecnicos({
             >
               Actualizar
             </button>
-            <p className="text-[10px] text-gray-300 mt-0.5">
-              {ultimaActualizacion.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}
-            </p>
+            {ultimaActualizacion && (
+              <p className="text-[10px] text-gray-300 mt-0.5">
+                {ultimaActualizacion.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
           </div>
         </div>
 
